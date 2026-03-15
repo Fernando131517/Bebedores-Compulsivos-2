@@ -115,11 +115,8 @@
   .star-rating { display:flex; gap:6px; margin-top:4px; }
   .star-btn { background:none; border:none; font-size:22px; cursor:pointer; color:var(--border); transition:color 0.1s; }
   .star-btn.active { color:var(--gold); }
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 20px; font-size:13px; color:var(--text); z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 20px; font-size:13px; color:var(--text); z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; }
   .toast.show { opacity:1; }
-  .loading { display:flex; align-items:center; justify-content:center; gap:10px; padding:40px; color:var(--muted); font-size:14px; }
-  .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
-  @keyframes spin { to { transform:rotate(360deg); } }
   @media (max-width:600px) {
     nav, .page-header, .grupos-list, .bebidas-header, .grupo-detalle-body, .bebidas-grid { padding-left:16px; padding-right:16px; }
     .search-bar { margin-left:16px; margin-right:16px; }
@@ -130,7 +127,6 @@
 </head>
 <body>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <!-- WELCOME -->
@@ -151,14 +147,8 @@
         <div class="app-icon" style="margin:0 auto 16px;"><svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></div>
         <h1>Bebedores Compulsivos</h1><p>El diario de bebidas de tu grupo</p>
       </div>
-      <div class="field">
-        <label>Tu nombre</label>
-        <input id="create-name" type="text" placeholder="Ej: Carlos">
-      </div>
-      <div class="field">
-        <label>Nombre del grupo</label>
-        <input id="create-grupo" type="text" placeholder="Ej: Los catadores">
-      </div>
+      <div class="field"><label>Tu nombre</label><input id="create-name" type="text" placeholder="Ej: Carlos"></div>
+      <div class="field"><label>Nombre del grupo</label><input id="create-grupo" type="text" placeholder="Ej: Los catadores"></div>
       <div class="field">
         <label>Código del grupo</label>
         <input id="create-code" type="text" placeholder="Ej: AMIGOS24" style="text-transform:uppercase">
@@ -178,10 +168,7 @@
         <div class="app-icon" style="margin:0 auto 16px;"><svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></div>
         <h1>Bebedores Compulsivos</h1><p>El diario de bebidas de tu grupo</p>
       </div>
-      <div class="field">
-        <label>Tu nombre</label>
-        <input id="join-name" type="text" placeholder="Ej: Carlos">
-      </div>
+      <div class="field"><label>Tu nombre</label><input id="join-name" type="text" placeholder="Ej: Carlos"></div>
       <div class="field">
         <label>Código del grupo</label>
         <input id="join-code" type="text" placeholder="Ej: AMIGOS24" style="text-transform:uppercase">
@@ -258,7 +245,7 @@
   <div id="bebidas-container"></div>
 </div>
 
-<!-- MODAL AÑADIR BEBIDA -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
     <div class="modal-header"><h3>Añadir bebida</h3><button class="modal-close" onclick="closeModal()">×</button></div>
@@ -294,8 +281,7 @@
 </div>
 
 <script>
-// ── Configuración JSONBin ──
-const BIN_ID = '69b71ffcc3097a1dd52a3ce4';
+const BIN_ID  = '69b71ffcc3097a1dd52a3ce4';
 const API_KEY = '$2a$10$9cO4uPteBKsiYJs7oKLdO.KzPEJgmhNP4EUxvsdBolNV2lRwSgtha';
 const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
@@ -306,24 +292,24 @@ const state = {
   db: { grupos: [] }
 };
 
-// ── JSONBin: leer y escribir ──
 async function dbRead() {
   const res = await fetch(API_URL + '/latest', {
     headers: { 'X-Master-Key': API_KEY }
   });
+  if (!res.ok) throw new Error('Error ' + res.status);
   const data = await res.json();
   state.db = data.record;
 }
 
 async function dbWrite() {
-  await fetch(API_URL, {
+  const res = await fetch(API_URL, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
     body: JSON.stringify(state.db)
   });
+  if (!res.ok) throw new Error('Error ' + res.status);
 }
 
-// ── Sesión local ──
 function saveSession() {
   localStorage.setItem('bc_user', state.user);
   localStorage.setItem('bc_grupo', state.currentGrupoCode || '');
@@ -333,7 +319,6 @@ function loadSession() {
   state.currentGrupoCode = localStorage.getItem('bc_grupo') || null;
 }
 
-// ── UI helpers ──
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -348,12 +333,11 @@ function showToast(msg, ms = 2500) {
   setTimeout(() => t.classList.remove('show'), ms);
 }
 
-function setLoading(btnId, loading) {
+function setLoading(btnId, loading, texto) {
   const btn = document.getElementById(btnId);
   if (!btn) return;
   btn.disabled = loading;
-  if (loading) btn.dataset.orig = btn.textContent;
-  btn.textContent = loading ? 'Cargando...' : btn.dataset.orig;
+  btn.textContent = loading ? 'Guardando...' : texto;
 }
 
 function logout() {
@@ -363,19 +347,20 @@ function logout() {
   showScreen('welcome');
 }
 
-// ── Crear grupo ──
 async function crearGrupo() {
-  const name = document.getElementById('create-name').value.trim();
+  const name  = document.getElementById('create-name').value.trim();
   const gname = document.getElementById('create-grupo').value.trim();
-  const code = document.getElementById('create-code').value.trim().toUpperCase();
+  const code  = document.getElementById('create-code').value.trim().toUpperCase();
   if (!name || !gname || !code) { showToast('Rellena todos los campos'); return; }
   if (code.length < 3) { showToast('El código debe tener al menos 3 caracteres'); return; }
-
-  setLoading('btn-crear', true);
+  setLoading('btn-crear', true, 'Crear grupo y entrar');
   try {
     await dbRead();
-    const exists = state.db.grupos.find(g => g.code === code);
-    if (exists) { showToast('Ese código ya existe, elige otro'); setLoading('btn-crear', false); return; }
+    if (state.db.grupos.find(g => g.code === code)) {
+      showToast('Ese código ya existe, elige otro');
+      setLoading('btn-crear', false, 'Crear grupo y entrar');
+      return;
+    }
     state.db.grupos.push({ name: gname, code, members: [name], bebidas: [] });
     await dbWrite();
     state.user = name;
@@ -384,26 +369,24 @@ async function crearGrupo() {
     document.getElementById('create-name').value = '';
     document.getElementById('create-grupo').value = '';
     document.getElementById('create-code').value = '';
-    showToast('Grupo creado correctamente');
+    showToast('¡Grupo creado!');
     showScreen('grupo-detalle');
     renderDetalle();
   } catch(e) {
     showToast('Error de conexión, inténtalo de nuevo');
   }
-  setLoading('btn-crear', false);
+  setLoading('btn-crear', false, 'Crear grupo y entrar');
 }
 
-// ── Unirse a grupo ──
 async function unirseGrupo() {
   const name = document.getElementById('join-name').value.trim();
   const code = document.getElementById('join-code').value.trim().toUpperCase();
   if (!name || !code) { showToast('Rellena todos los campos'); return; }
-
-  setLoading('btn-unirse', true);
+  setLoading('btn-unirse', true, 'Unirse al grupo');
   try {
     await dbRead();
     const g = state.db.grupos.find(g => g.code === code);
-    if (!g) { showToast('Código no encontrado'); setLoading('btn-unirse', false); return; }
+    if (!g) { showToast('Código no encontrado'); setLoading('btn-unirse', false, 'Unirse al grupo'); return; }
     if (!g.members.includes(name)) g.members.push(name);
     await dbWrite();
     state.user = name;
@@ -411,16 +394,15 @@ async function unirseGrupo() {
     saveSession();
     document.getElementById('join-name').value = '';
     document.getElementById('join-code').value = '';
-    showToast('Te has unido a ' + g.name);
+    showToast('¡Te has unido a ' + g.name + '!');
     showScreen('grupo-detalle');
     renderDetalle();
   } catch(e) {
     showToast('Error de conexión, inténtalo de nuevo');
   }
-  setLoading('btn-unirse', false);
+  setLoading('btn-unirse', false, 'Unirse al grupo');
 }
 
-// ── Render mis grupos ──
 function renderGrupos() {
   document.getElementById('mg-subtitle').textContent = state.user ? 'Hola, ' + state.user : 'Bienvenido';
   const myGroups = state.db.grupos.filter(g => g.members.includes(state.user));
@@ -473,7 +455,6 @@ function renderDetalle() {
   document.getElementById('bebidas-code-chip').innerHTML = `📋 <strong>${g.code}</strong>`;
 }
 
-// ── Filtros bebidas ──
 function setTipo(el) {
   document.querySelectorAll('.filter-row .chip').forEach(c => c.classList.remove('active'));
   el.classList.add('active'); state.filterTipo = el.dataset.tipo; renderBebidas();
@@ -510,7 +491,6 @@ function catIcon(cat) {
   return m[cat] || '🥂';
 }
 
-// ── Modal añadir bebida ──
 function openModal() {
   state.rating = 0; state.photoData = null;
   ['m-nombre','m-marca','m-lugar','m-notas'].forEach(id => document.getElementById(id).value = '');
@@ -542,36 +522,29 @@ async function addBebida() {
   const nombre = document.getElementById('m-nombre').value.trim();
   const cat = document.getElementById('m-cat').value;
   if (!nombre || !cat) { showToast('Nombre y categoría son obligatorios'); return; }
-
-  setLoading('btn-add-bebida', true);
+  setLoading('btn-add-bebida', true, 'Añadir bebida');
   const fecha = document.getElementById('m-fecha').value;
   const parts = fecha.split('-');
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   const fechaFmt = parts[2] + ' ' + meses[parseInt(parts[1])-1] + ' ' + parts[0].slice(2);
-
   try {
     await dbRead();
     const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
     g.bebidas.push({ nombre, cat, tipo: document.getElementById('m-tipo').value, marca: document.getElementById('m-marca').value, lugar: document.getElementById('m-lugar').value, notas: document.getElementById('m-notas').value, rating: state.rating, fecha: fechaFmt, author: state.user, photo: state.photoData });
     await dbWrite();
-    showToast('Bebida añadida');
+    showToast('¡Bebida añadida!');
     closeModal();
     renderBebidas();
   } catch(e) {
     showToast('Error al guardar, inténtalo de nuevo');
   }
-  setLoading('btn-add-bebida', false);
+  setLoading('btn-add-bebida', false, 'Añadir bebida');
 }
 
-// ── Inicio ──
 async function init() {
   loadSession();
   try {
     await dbRead();
-    if (state.user && state.currentGrupoCode) {
-      const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
-      if (g) { showScreen('mis-grupos'); return; }
-    }
     if (state.user) { showScreen('mis-grupos'); return; }
   } catch(e) {}
   showScreen('welcome');
