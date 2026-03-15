@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bebedores Compulsivos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --bg: #0e0e0b; --surface: #1a1a16; --surface2: #222220;
+    --gold: #e8a020; --gold-dim: #c17f10;
+    --text: #f0ede8; --muted: #888880;
+    --border: rgba(255,255,255,0.08); --radius: 12px;
+  }
+  body { background:var(--bg); color:var(--text); font-family:'Inter',sans-serif; font-size:14px; min-height:100vh; }
+  .screen { display:none; flex-direction:column; min-height:100vh; }
+  .screen.active { display:flex; }
+  nav { display:flex; align-items:center; justify-content:space-between; padding:14px 28px; border-bottom:1px solid var(--border); background:var(--bg); position:sticky; top:0; z-index:10; }
+  .nav-logo { display:flex; align-items:center; gap:8px; font-weight:600; font-size:15px; cursor:pointer; color:var(--text); }
+  .nav-logo svg { color:var(--gold); }
+  .nav-btn { background:none; border:none; color:var(--gold); font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Inter',sans-serif; }
+  #welcome { align-items:center; justify-content:center; padding:40px 20px; }
+  .app-icon { width:72px; height:72px; background:#2a1f0a; border-radius:18px; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+  .app-icon svg { color:var(--gold); }
+  #welcome h1 { font-family:'Playfair Display',serif; font-size:2.6rem; margin-bottom:8px; text-align:center; line-height:1.2; }
+  #welcome p { color:var(--muted); margin-bottom:36px; font-size:15px; }
+  .btn-primary { width:100%; max-width:400px; background:var(--gold); color:#1a0f00; border:none; border-radius:var(--radius); padding:16px; font-size:15px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:12px; font-family:'Inter',sans-serif; transition:background 0.15s; }
+  .btn-primary:hover { background:#f0a820; }
+  .btn-secondary { width:100%; max-width:400px; background:transparent; color:var(--text); border:1px solid var(--border); border-radius:var(--radius); padding:16px; font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; font-family:'Inter',sans-serif; transition:border-color 0.15s; }
+  .btn-secondary:hover { border-color:var(--gold); }
+  #create-form, #join-form { align-items:center; justify-content:center; padding:40px 20px; }
+  .form-box { width:100%; max-width:400px; }
+  .back-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:13px; display:flex; align-items:center; gap:6px; margin-bottom:28px; font-family:'Inter',sans-serif; }
+  .back-btn:hover { color:var(--text); }
+  .form-header { text-align:center; margin-bottom:32px; }
+  .form-header h1 { font-family:'Playfair Display',serif; font-size:1.8rem; margin-bottom:6px; }
+  .form-header p { color:var(--muted); font-size:14px; }
+  .field { margin-bottom:20px; }
+  .field label { display:block; font-weight:500; margin-bottom:8px; font-size:13px; }
+  .field input { width:100%; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:13px 16px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; transition:border-color 0.15s; }
+  .field input:focus { border-color:var(--gold); }
+  .field input::placeholder { color:var(--muted); }
+  .field .hint { font-size:11px; color:var(--muted); margin-top:6px; }
+  .btn-form { width:100%; background:var(--gold-dim); color:#1a0f00; border:none; border-radius:var(--radius); padding:15px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:background 0.15s; margin-top:4px; }
+  .btn-form:hover { background:var(--gold); }
+  .btn-form:disabled { opacity:0.5; cursor:not-allowed; }
+  #mis-grupos { padding:0; }
+  .page-header { padding:24px 28px 20px; display:flex; align-items:flex-start; justify-content:space-between; }
+  .page-header h2 { font-family:'Playfair Display',serif; font-size:2rem; margin-bottom:4px; }
+  .page-header .subtitle { color:var(--muted); font-size:14px; }
+  .header-actions { display:flex; gap:10px; margin-top:4px; }
+  .btn-sm { background:transparent; border:1px solid var(--border); border-radius:8px; color:var(--text); padding:8px 14px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Inter',sans-serif; transition:border-color 0.15s; }
+  .btn-sm:hover { border-color:var(--muted); }
+  .btn-sm.gold { background:var(--gold); border-color:var(--gold); color:#1a0f00; font-weight:600; }
+  .btn-sm.gold:hover { background:#f0a820; }
+  .grupos-list { padding:0 28px; display:flex; flex-direction:column; gap:12px; }
+  .grupo-card { background:var(--surface); border-radius:var(--radius); padding:18px 20px; cursor:pointer; border:1px solid transparent; transition:border-color 0.15s; }
+  .grupo-card:hover { border-color:var(--border); }
+  .grupo-card-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .grupo-name { font-size:15px; font-weight:500; }
+  .grupo-meta { display:flex; align-items:center; justify-content:space-between; }
+  .grupo-members { color:var(--muted); font-size:12px; }
+  .grupo-code { color:var(--muted); font-size:12px; }
+  #grupo-detalle { padding:0; }
+  .grupo-detalle-body { padding:20px 28px; }
+  .grupo-info-card { background:var(--surface); border-radius:var(--radius); padding:20px; margin-bottom:16px; }
+  .grupo-info-card h3 { font-size:15px; font-weight:600; margin-bottom:12px; display:flex; align-items:center; justify-content:space-between; }
+  .grupo-info-row { color:var(--muted); font-size:13px; display:flex; align-items:center; gap:6px; margin-bottom:8px; }
+  .ver-bebidas { color:var(--gold); font-size:13px; font-weight:500; cursor:pointer; background:none; border:none; font-family:'Inter',sans-serif; display:flex; align-items:center; gap:4px; margin-top:14px; }
+  .ver-bebidas:hover { text-decoration:underline; }
+  .share-hint { text-align:center; color:var(--muted); font-size:13px; margin-top:12px; }
+  .share-hint strong { color:var(--gold); }
+  #bebidas-screen { padding:0; }
+  .bebidas-header { padding:20px 28px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .bebidas-header-left h2 { font-family:'Playfair Display',serif; font-size:1.8rem; }
+  .bebidas-header-left .meta { display:flex; align-items:center; gap:12px; margin-top:6px; flex-wrap:wrap; }
+  .meta-chip { background:var(--surface); border-radius:6px; padding:4px 10px; font-size:12px; color:var(--muted); }
+  .meta-chip strong { color:var(--text); }
+  .search-bar { margin:0 28px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:11px 16px; display:flex; align-items:center; gap:10px; }
+  .search-bar input { background:none; border:none; color:var(--text); font-size:14px; outline:none; flex:1; font-family:'Inter',sans-serif; }
+  .search-bar input::placeholder { color:var(--muted); }
+  .filter-row { padding:0 28px 10px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+  .filter-row::-webkit-scrollbar { display:none; }
+  .chip { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:6px 14px; font-size:12px; cursor:pointer; white-space:nowrap; color:var(--muted); font-family:'Inter',sans-serif; transition:all 0.15s; }
+  .chip.active { background:var(--gold); border-color:var(--gold); color:#1a0f00; font-weight:600; }
+  .cat-row { padding:0 28px 16px; display:flex; gap:8px; overflow-x:auto; scrollbar-width:none; }
+  .cat-row::-webkit-scrollbar { display:none; }
+  .empty-state { display:flex; flex-direction:column; align-items:center; padding:80px 20px; color:var(--muted); gap:12px; }
+  .bebidas-grid { padding:0 28px 28px; display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px; }
+  .bebida-card { background:var(--surface); border-radius:var(--radius); overflow:hidden; transition:transform 0.15s; }
+  .bebida-card:hover { transform:translateY(-2px); }
+  .bebida-img { height:160px; background:var(--surface2); display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+  .bebida-img .type-badge { position:absolute; top:10px; left:10px; background:rgba(0,0,0,0.6); border-radius:6px; padding:3px 8px; font-size:11px; color:var(--muted); }
+  .bebida-info { padding:12px 14px; }
+  .bebida-name { font-size:14px; font-weight:600; margin-bottom:6px; display:flex; align-items:center; justify-content:space-between; }
+  .stars { display:flex; gap:3px; margin-bottom:8px; }
+  .star { color:var(--border); font-size:13px; }
+  .star.filled { color:var(--gold); }
+  .bebida-meta { display:flex; align-items:center; gap:10px; color:var(--muted); font-size:11px; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:100; align-items:center; justify-content:center; padding:20px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border-radius:16px; width:100%; max-width:480px; max-height:90vh; overflow-y:auto; }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; padding:20px 24px 0; }
+  .modal-header h3 { font-size:17px; font-weight:600; }
+  .modal-close { background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; line-height:1; }
+  .modal-body { padding:20px 24px 24px; }
+  .photo-upload { border:1.5px dashed var(--gold-dim); border-radius:10px; height:140px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); cursor:pointer; margin-bottom:20px; transition:border-color 0.15s; overflow:hidden; }
+  .photo-upload:hover { border-color:var(--gold); }
+  .modal .field select { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; appearance:none; cursor:pointer; }
+  .modal .field select:focus { border-color:var(--gold); }
+  .two-col { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .notes-field textarea { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:13px 16px; color:var(--text); font-size:14px; font-family:'Inter',sans-serif; outline:none; resize:none; height:80px; }
+  .notes-field textarea:focus { border-color:var(--gold); }
+  .star-rating { display:flex; gap:6px; margin-top:4px; }
+  .star-btn { background:none; border:none; font-size:22px; cursor:pointer; color:var(--border); transition:color 0.1s; }
+  .star-btn.active { color:var(--gold); }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:12px 20px; font-size:13px; color:var(--text); z-index:999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  .loading { display:flex; align-items:center; justify-content:center; gap:10px; padding:40px; color:var(--muted); font-size:14px; }
+  .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--gold); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  @media (max-width:600px) {
+    nav, .page-header, .grupos-list, .bebidas-header, .grupo-detalle-body, .bebidas-grid { padding-left:16px; padding-right:16px; }
+    .search-bar { margin-left:16px; margin-right:16px; }
+    .bebidas-grid { grid-template-columns:1fr 1fr; }
+    .two-col { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- WELCOME -->
+<div id="welcome" class="screen active">
+  <div class="app-icon"><svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></div>
+  <h1>Bebedores<br>Compulsivos</h1>
+  <p>El diario de bebidas de tu grupo</p>
+  <button class="btn-primary" onclick="showScreen('create-form')"><span style="font-size:18px">+</span> Crear un grupo nuevo</button>
+  <button class="btn-secondary" onclick="showScreen('join-form')"><span>→</span> Unirme a un grupo</button>
+</div>
+
+<!-- CREAR GRUPO -->
+<div id="create-form" class="screen">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 20px;">
+    <div class="form-box">
+      <button class="back-btn" onclick="showScreen('welcome')">← Volver</button>
+      <div class="form-header">
+        <div class="app-icon" style="margin:0 auto 16px;"><svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></div>
+        <h1>Bebedores Compulsivos</h1><p>El diario de bebidas de tu grupo</p>
+      </div>
+      <div class="field">
+        <label>Tu nombre</label>
+        <input id="create-name" type="text" placeholder="Ej: Carlos">
+      </div>
+      <div class="field">
+        <label>Nombre del grupo</label>
+        <input id="create-grupo" type="text" placeholder="Ej: Los catadores">
+      </div>
+      <div class="field">
+        <label>Código del grupo</label>
+        <input id="create-code" type="text" placeholder="Ej: AMIGOS24" style="text-transform:uppercase">
+        <div class="hint">Este código lo compartirás con tus amigos para que se unan</div>
+      </div>
+      <button class="btn-form" id="btn-crear" onclick="crearGrupo()">Crear grupo y entrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- UNIRSE -->
+<div id="join-form" class="screen">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;padding:40px 20px;">
+    <div class="form-box">
+      <button class="back-btn" onclick="showScreen('welcome')">← Volver</button>
+      <div class="form-header">
+        <div class="app-icon" style="margin:0 auto 16px;"><svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></div>
+        <h1>Bebedores Compulsivos</h1><p>El diario de bebidas de tu grupo</p>
+      </div>
+      <div class="field">
+        <label>Tu nombre</label>
+        <input id="join-name" type="text" placeholder="Ej: Carlos">
+      </div>
+      <div class="field">
+        <label>Código del grupo</label>
+        <input id="join-code" type="text" placeholder="Ej: AMIGOS24" style="text-transform:uppercase">
+        <div class="hint">Pídele el código al creador del grupo</div>
+      </div>
+      <button class="btn-form" id="btn-unirse" onclick="unirseGrupo()">Unirse al grupo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MIS GRUPOS -->
+<div id="mis-grupos" class="screen">
+  <nav>
+    <div class="nav-logo" onclick="showScreen('mis-grupos')"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg> Bebedores Compulsivos</div>
+    <button class="nav-btn" onclick="logout()">Cerrar sesión</button>
+  </nav>
+  <div class="page-header">
+    <div><h2>Mis grupos</h2><div class="subtitle" id="mg-subtitle">Bienvenido</div></div>
+    <div class="header-actions">
+      <button class="btn-sm" onclick="showScreen('join-form')">→ Unirse</button>
+      <button class="btn-sm gold" onclick="showScreen('create-form')">+ Crear</button>
+    </div>
+  </div>
+  <div class="grupos-list" id="grupos-list"></div>
+</div>
+
+<!-- GRUPO DETALLE -->
+<div id="grupo-detalle" class="screen">
+  <nav>
+    <div class="nav-logo" onclick="showScreen('mis-grupos')"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg> Bebedores Compulsivos</div>
+    <button class="nav-btn" onclick="showScreen('mis-grupos')"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a4 4 0 00-5.5-3.7M9 20H4v-2a4 4 0 015.5-3.7M12 12a4 4 0 100-8 4 4 0 000 8z"/></svg> Mis grupos</button>
+  </nav>
+  <div class="grupo-detalle-body" id="grupo-detalle-body"></div>
+</div>
+
+<!-- BEBIDAS -->
+<div id="bebidas-screen" class="screen">
+  <nav>
+    <div class="nav-logo" onclick="showScreen('mis-grupos')"><svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg> Bebedores Compulsivos</div>
+    <button class="nav-btn" onclick="showScreen('mis-grupos')"><svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M17 20h5v-2a4 4 0 00-5.5-3.7M9 20H4v-2a4 4 0 015.5-3.7M12 12a4 4 0 100-8 4 4 0 000 8z"/></svg> Mis grupos</button>
+  </nav>
+  <div class="bebidas-header">
+    <div class="bebidas-header-left">
+      <div style="color:var(--muted);font-size:13px;margin-bottom:4px;cursor:pointer;" onclick="showScreen('mis-grupos')">← Mis grupos</div>
+      <h2 id="bebidas-title">Grupo</h2>
+      <div class="meta">
+        <div class="meta-chip" id="bebidas-member-chip"></div>
+        <div class="meta-chip" id="bebidas-code-chip"></div>
+      </div>
+    </div>
+    <button class="btn-sm gold" onclick="openModal()">+ Añadir bebida</button>
+  </div>
+  <div class="search-bar">
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="color:var(--muted)"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input type="text" placeholder="Buscar bebida..." id="search-input" oninput="renderBebidas()">
+  </div>
+  <div class="filter-row">
+    <span class="chip active" data-tipo="todas" onclick="setTipo(this)">Todas</span>
+    <span class="chip" data-tipo="sola" onclick="setTipo(this)">Solas</span>
+    <span class="chip" data-tipo="mezcla" onclick="setTipo(this)">Mezclas</span>
+  </div>
+  <div class="cat-row">
+    <span class="chip active" data-cat="todas" onclick="setCat(this)">Todas</span>
+    <span class="chip" data-cat="Cerveza" onclick="setCat(this)">🍺 Cerveza</span>
+    <span class="chip" data-cat="Vino" onclick="setCat(this)">🍷 Vino</span>
+    <span class="chip" data-cat="Whisky" onclick="setCat(this)">🥃 Whisky</span>
+    <span class="chip" data-cat="Ron" onclick="setCat(this)">🏝️ Ron</span>
+    <span class="chip" data-cat="Vodka" onclick="setCat(this)">🍸 Vodka</span>
+    <span class="chip" data-cat="Ginebra" onclick="setCat(this)">🫙 Ginebra</span>
+    <span class="chip" data-cat="Tequila" onclick="setCat(this)">🌵 Tequila</span>
+    <span class="chip" data-cat="Cóctel" onclick="setCat(this)">🍹 Cóctel</span>
+    <span class="chip" data-cat="Otro" onclick="setCat(this)">✨ Otro</span>
+  </div>
+  <div id="bebidas-container"></div>
+</div>
+
+<!-- MODAL AÑADIR BEBIDA -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header"><h3>Añadir bebida</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="photo-upload" id="photo-upload" onclick="document.getElementById('photo-input').click()">
+        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="color:var(--muted)"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span style="font-size:13px">Subir foto</span>
+        <input type="file" id="photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+      </div>
+      <div class="field"><label>Nombre *</label><input id="m-nombre" type="text" placeholder="Ej: Mojito, Estrella Galicia..."></div>
+      <div class="two-col">
+        <div class="field"><label>Tipo *</label><select id="m-tipo"><option value="sola">Sola</option><option value="mezcla">Mezcla / Cóctel</option></select></div>
+        <div class="field"><label>Categoría *</label><select id="m-cat"><option value="">Seleccionar</option><option>Cerveza</option><option>Vino</option><option>Whisky</option><option>Ron</option><option>Vodka</option><option>Ginebra</option><option>Tequila</option><option>Mezcal</option><option>Licor</option><option>Cóctel</option><option>Otro</option></select></div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label>Marca / Bar</label><input id="m-marca" type="text" placeholder="Opcional"></div>
+        <div class="field"><label>Lugar</label><input id="m-lugar" type="text" placeholder="Dónde se probó"></div>
+      </div>
+      <div class="field"><label>Valoración</label>
+        <div class="star-rating">
+          <button class="star-btn" data-v="1" onclick="setRating(1)">★</button>
+          <button class="star-btn" data-v="2" onclick="setRating(2)">★</button>
+          <button class="star-btn" data-v="3" onclick="setRating(3)">★</button>
+          <button class="star-btn" data-v="4" onclick="setRating(4)">★</button>
+          <button class="star-btn" data-v="5" onclick="setRating(5)">★</button>
+        </div>
+      </div>
+      <div class="notes-field field"><label>Notas</label><textarea id="m-notas" placeholder="Aroma, sabor, sensaciones..."></textarea></div>
+      <div class="field"><label>Fecha</label><input id="m-fecha" type="date"></div>
+      <button class="btn-form" id="btn-add-bebida" onclick="addBebida()">Añadir bebida</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Configuración JSONBin ──
+const BIN_ID = '69b71920aa77b81da9e94c37';
+const API_KEY = '$2a$10$9cO4uPteBKsiYJs7oKLdO.KzPEJgmhNP4EUxvsdBolNV2lRwSgtha';
+const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+const state = {
+  user: '', currentGrupoCode: null,
+  filterTipo: 'todas', filterCat: 'todas',
+  rating: 0, photoData: null,
+  db: { grupos: [] }
+};
+
+// ── JSONBin: leer y escribir ──
+async function dbRead() {
+  const res = await fetch(API_URL + '/latest', {
+    headers: { 'X-Master-Key': API_KEY }
+  });
+  const data = await res.json();
+  state.db = data.record;
+}
+
+async function dbWrite() {
+  await fetch(API_URL, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+    body: JSON.stringify(state.db)
+  });
+}
+
+// ── Sesión local ──
+function saveSession() {
+  localStorage.setItem('bc_user', state.user);
+  localStorage.setItem('bc_grupo', state.currentGrupoCode || '');
+}
+function loadSession() {
+  state.user = localStorage.getItem('bc_user') || '';
+  state.currentGrupoCode = localStorage.getItem('bc_grupo') || null;
+}
+
+// ── UI helpers ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'mis-grupos') renderGrupos();
+  if (id === 'bebidas-screen') renderBebidas();
+}
+
+function showToast(msg, ms = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) btn.dataset.orig = btn.textContent;
+  btn.textContent = loading ? 'Cargando...' : btn.dataset.orig;
+}
+
+function logout() {
+  state.user = '';
+  state.currentGrupoCode = null;
+  saveSession();
+  showScreen('welcome');
+}
+
+// ── Crear grupo ──
+async function crearGrupo() {
+  const name = document.getElementById('create-name').value.trim();
+  const gname = document.getElementById('create-grupo').value.trim();
+  const code = document.getElementById('create-code').value.trim().toUpperCase();
+  if (!name || !gname || !code) { showToast('Rellena todos los campos'); return; }
+  if (code.length < 3) { showToast('El código debe tener al menos 3 caracteres'); return; }
+
+  setLoading('btn-crear', true);
+  try {
+    await dbRead();
+    const exists = state.db.grupos.find(g => g.code === code);
+    if (exists) { showToast('Ese código ya existe, elige otro'); setLoading('btn-crear', false); return; }
+    state.db.grupos.push({ name: gname, code, members: [name], bebidas: [] });
+    await dbWrite();
+    state.user = name;
+    state.currentGrupoCode = code;
+    saveSession();
+    document.getElementById('create-name').value = '';
+    document.getElementById('create-grupo').value = '';
+    document.getElementById('create-code').value = '';
+    showToast('Grupo creado correctamente');
+    showScreen('grupo-detalle');
+    renderDetalle();
+  } catch(e) {
+    showToast('Error de conexión, inténtalo de nuevo');
+  }
+  setLoading('btn-crear', false);
+}
+
+// ── Unirse a grupo ──
+async function unirseGrupo() {
+  const name = document.getElementById('join-name').value.trim();
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (!name || !code) { showToast('Rellena todos los campos'); return; }
+
+  setLoading('btn-unirse', true);
+  try {
+    await dbRead();
+    const g = state.db.grupos.find(g => g.code === code);
+    if (!g) { showToast('Código no encontrado'); setLoading('btn-unirse', false); return; }
+    if (!g.members.includes(name)) g.members.push(name);
+    await dbWrite();
+    state.user = name;
+    state.currentGrupoCode = code;
+    saveSession();
+    document.getElementById('join-name').value = '';
+    document.getElementById('join-code').value = '';
+    showToast('Te has unido a ' + g.name);
+    showScreen('grupo-detalle');
+    renderDetalle();
+  } catch(e) {
+    showToast('Error de conexión, inténtalo de nuevo');
+  }
+  setLoading('btn-unirse', false);
+}
+
+// ── Render mis grupos ──
+function renderGrupos() {
+  document.getElementById('mg-subtitle').textContent = state.user ? 'Hola, ' + state.user : 'Bienvenido';
+  const myGroups = state.db.grupos.filter(g => g.members.includes(state.user));
+  const list = document.getElementById('grupos-list');
+  if (!myGroups.length) {
+    list.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:20px 0;">Aún no tienes grupos. Crea uno o únete con un código.</p>';
+    return;
+  }
+  list.innerHTML = myGroups.map(g => `
+    <div class="grupo-card" onclick="openGrupo('${g.code}')">
+      <div class="grupo-card-top">
+        <span class="grupo-name">${g.name}</span>
+        <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="color:var(--gold)"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg>
+      </div>
+      <div class="grupo-meta">
+        <span class="grupo-members">👥 ${g.members.length} miembro${g.members.length!==1?'s':''}</span>
+        <span class="grupo-code">📋 ${g.code}</span>
+      </div>
+    </div>`).join('');
+}
+
+function openGrupo(code) {
+  state.currentGrupoCode = code;
+  saveSession();
+  showScreen('grupo-detalle');
+  renderDetalle();
+}
+
+function renderDetalle() {
+  const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
+  if (!g) return;
+  document.getElementById('grupo-detalle-body').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;">
+      <div>
+        <div style="color:var(--muted);font-size:13px;margin-bottom:4px;">Hola, <strong style="color:var(--text)">${state.user}</strong></div>
+        <h2 style="font-family:'Playfair Display',serif;font-size:2rem;">${g.name}</h2>
+      </div>
+      <button style="background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;" onclick="showScreen('mis-grupos')">→ Salir</button>
+    </div>
+    <div class="grupo-info-card">
+      <h3>${g.name} <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="color:var(--muted)"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg></h3>
+      <div class="grupo-info-row">👥 ${g.members.length} miembro${g.members.length!==1?'s':''}: ${g.members.join(', ')}</div>
+      <div class="grupo-info-row">📋 Código: <strong style="color:var(--gold)">${g.code}</strong></div>
+      <div class="grupo-info-row">🍺 ${g.bebidas.length} bebida${g.bebidas.length!==1?'s':''} registrada${g.bebidas.length!==1?'s':''}</div>
+      <button class="ver-bebidas" onclick="showScreen('bebidas-screen');renderBebidas()">Ver bebidas →</button>
+    </div>
+    <p class="share-hint">Comparte el código <strong>${g.code}</strong> con tus amigos para que se unan</p>`;
+  document.getElementById('bebidas-title').textContent = g.name;
+  document.getElementById('bebidas-member-chip').innerHTML = `👤 ${state.user}`;
+  document.getElementById('bebidas-code-chip').innerHTML = `📋 <strong>${g.code}</strong>`;
+}
+
+// ── Filtros bebidas ──
+function setTipo(el) {
+  document.querySelectorAll('.filter-row .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); state.filterTipo = el.dataset.tipo; renderBebidas();
+}
+function setCat(el) {
+  document.querySelectorAll('.cat-row .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active'); state.filterCat = el.dataset.cat; renderBebidas();
+}
+
+function renderBebidas() {
+  const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
+  if (!g) return;
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const list = g.bebidas.filter(b => {
+    if (state.filterTipo !== 'todas' && b.tipo !== state.filterTipo) return false;
+    if (state.filterCat !== 'todas' && b.cat !== state.filterCat) return false;
+    if (q && !b.nombre.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const container = document.getElementById('bebidas-container');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" style="color:var(--surface2)"><path d="M8 22h8M12 17v5M5 2h14l-2 9a5 5 0 01-10 0L5 2z"/></svg><span>Aún no hay bebidas en este grupo</span></div>`;
+    return;
+  }
+  container.innerHTML = `<div class="bebidas-grid">${list.map(b => {
+    const stars = [1,2,3,4,5].map(i => `<span class="star${b.rating>=i?' filled':''}">★</span>`).join('');
+    const img = b.photo ? `<img src="${b.photo}" style="width:100%;height:100%;object-fit:cover;">` : `<svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" style="color:var(--surface2)"><path d="M5 3l1 9a6 6 0 0012 0l1-9H5zM3 3h18"/></svg>`;
+    return `<div class="bebida-card"><div class="bebida-img">${img}<span class="type-badge">${b.tipo==='mezcla'?'Mezcla':'Sola'}</span></div><div class="bebida-info"><div class="bebida-name">${b.nombre} <span style="font-size:16px">${catIcon(b.cat)}</span></div><div class="stars">${stars}</div><div class="bebida-meta"><span>👤 ${b.author}</span><span>📅 ${b.fecha}</span></div></div></div>`;
+  }).join('')}</div>`;
+}
+
+function catIcon(cat) {
+  const m = {Cerveza:'🍺',Vino:'🍷',Whisky:'🥃',Ron:'🏝️',Vodka:'🍸',Ginebra:'🫙',Tequila:'🌵',Mezcal:'🌵',Licor:'🍶','Cóctel':'🍹',Otro:'✨'};
+  return m[cat] || '🥂';
+}
+
+// ── Modal añadir bebida ──
+function openModal() {
+  state.rating = 0; state.photoData = null;
+  ['m-nombre','m-marca','m-lugar','m-notas'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-tipo').value = 'sola';
+  document.getElementById('m-cat').value = '';
+  document.getElementById('m-fecha').value = new Date().toISOString().split('T')[0];
+  document.querySelectorAll('.star-btn').forEach(s => s.classList.remove('active'));
+  document.getElementById('photo-upload').innerHTML = `<svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2" style="color:var(--muted)"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg><span style="font-size:13px">Subir foto</span><input type="file" id="photo-input" accept="image/*" style="display:none" onchange="previewPhoto(this)">`;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function setRating(v) {
+  state.rating = v;
+  document.querySelectorAll('.star-btn').forEach(s => s.classList.toggle('active', parseInt(s.dataset.v) <= v));
+}
+
+function previewPhoto(input) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.photoData = e.target.result;
+    document.getElementById('photo-upload').innerHTML = `<img src="${state.photoData}" style="width:100%;height:100%;object-fit:cover;border-radius:8px;">`;
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+async function addBebida() {
+  const nombre = document.getElementById('m-nombre').value.trim();
+  const cat = document.getElementById('m-cat').value;
+  if (!nombre || !cat) { showToast('Nombre y categoría son obligatorios'); return; }
+
+  setLoading('btn-add-bebida', true);
+  const fecha = document.getElementById('m-fecha').value;
+  const parts = fecha.split('-');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const fechaFmt = parts[2] + ' ' + meses[parseInt(parts[1])-1] + ' ' + parts[0].slice(2);
+
+  try {
+    await dbRead();
+    const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
+    g.bebidas.push({ nombre, cat, tipo: document.getElementById('m-tipo').value, marca: document.getElementById('m-marca').value, lugar: document.getElementById('m-lugar').value, notas: document.getElementById('m-notas').value, rating: state.rating, fecha: fechaFmt, author: state.user, photo: state.photoData });
+    await dbWrite();
+    showToast('Bebida añadida');
+    closeModal();
+    renderBebidas();
+  } catch(e) {
+    showToast('Error al guardar, inténtalo de nuevo');
+  }
+  setLoading('btn-add-bebida', false);
+}
+
+// ── Inicio ──
+async function init() {
+  loadSession();
+  try {
+    await dbRead();
+    if (state.user && state.currentGrupoCode) {
+      const g = state.db.grupos.find(g => g.code === state.currentGrupoCode);
+      if (g) { showScreen('mis-grupos'); return; }
+    }
+    if (state.user) { showScreen('mis-grupos'); return; }
+  } catch(e) {}
+  showScreen('welcome');
+}
+
+init();
+</script>
+</body>
+</html>
